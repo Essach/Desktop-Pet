@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QMenu, QDesktopWidget
 from PyQt5.QtGui import QContextMenuEvent
 from PyQt5.QtCore import Qt, QTimer, QPoint
+import random
 
 class DesktopPet(QMainWindow):
     def __init__(self, screenSize):
@@ -13,16 +14,19 @@ class DesktopPet(QMainWindow):
         self.screenWidth = screenSize.width()
         self.screenHeight = screenSize.height()
         # self.setGeometry(screenSize.width() - 150,
-                        # screenSize.height() - 200,
-                        # 150, 150)
+        #                 screenSize.height() - 200,
+        #                 150, 150)
+        self.setGeometry(800,500,150,150)
         # self.posX = 800
         # self.posY = 500
 
-        self.setFixedSize(150, 150)
-        self.center()
+        # self.setFixedSize(150, 150)
+        # self.setGeometry(, self.pos, 150, 150)
+        # self.center()
         self.oldPos = self.pos()
-
-        # self.setGeometry(self.posX, self.posY, 150, 150)
+        # print(self.pos().x())
+        self.posX = self.pos().x()
+        self.posY = self.pos().y()
 
         self.char = QLabel(self)
         
@@ -34,7 +38,22 @@ class DesktopPet(QMainWindow):
         self.char.setStyleSheet("border-image: url(./saka.png);")
         self.char.setCursor(Qt.PointingHandCursor)
         
-        # self.char.clicked.connect(self.click_char)
+        self.randomMoveTimer = QTimer(self)
+        self.randomMoveTimer.timeout.connect(self.randomMove)
+        self.randomMoveTimer.start(5000)
+
+    def randomMove(self):
+        possible_moves = ['right', 'left', 'up', 'down', 'stand']
+        move = random.choice(possible_moves)
+        if move != 'stand':
+            if move == 'right' or move == 'left':
+                distance = random.randint(100,(self.screenWidth*3)//4)
+            else:
+                distance = random.randint(100,(self.screenHeight*3)//4)
+            self.randomMoveTimer.stop()
+            self.walk(move, distance)
+        print(move)
+        
 
     def click_char(self):
         print("Hallo!")
@@ -49,7 +68,7 @@ class DesktopPet(QMainWindow):
         self._walkAnimate()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._walkStep)
-        self.timer.start(1)
+        self.timer.start(4)
     
     def _walkAnimate(self):
         if self.current_direction == "stand":
@@ -73,6 +92,7 @@ class DesktopPet(QMainWindow):
             self.timer.stop()
             self.current_direction = "stand"
             self._walkAnimate()
+            self.randomMoveTimer.start(5000)
             return
 
         if self.current_direction == "right":
@@ -94,23 +114,22 @@ class DesktopPet(QMainWindow):
         self.setGeometry((int(self.posX)), int(self.posY), 150, 150)
         self.steps_left -= 1
 
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
     def mousePressEvent(self, event):
         self.oldPos = event.globalPos()
+        self.randomMoveTimer.stop()
+        self.timer.stop()
 
     def mouseMoveEvent(self, event):
         self.char.setStyleSheet("border-image: url(./sakaback.png);")
         delta = QPoint(event.globalPos() - self.oldPos)
-        self.move(self.x() + delta.x(), self.y() + delta.y())
+        self.posX = self.x() + delta.x()
+        self.posY = self.y() + delta.y()
+        self.move(self.posX, self.posY)
         self.oldPos = event.globalPos()
 
     def mouseReleaseEvent(self, event):
         self.char.setStyleSheet("border-image: url(./saka.png);")
+        self.randomMoveTimer.start(5000)
 
     def contextMenuEvent(self, event: QContextMenuEvent):
         contextMenu = QMenu(self)
