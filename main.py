@@ -29,6 +29,8 @@ class DesktopPet(QMainWindow):
         self.posY = self.pos().y()
 
         self.char = QLabel(self)
+
+        self.current_direction = 'stand'
         
         self.initUI()
         
@@ -117,7 +119,8 @@ class DesktopPet(QMainWindow):
     def mousePressEvent(self, event):
         self.oldPos = event.globalPos()
         self.randomMoveTimer.stop()
-        self.timer.stop()
+        if self.current_direction != 'stand':
+            self.timer.stop()
 
     def mouseMoveEvent(self, event):
         self.char.setStyleSheet("border-image: url(./sakaback.png);")
@@ -130,6 +133,19 @@ class DesktopPet(QMainWindow):
     def mouseReleaseEvent(self, event):
         self.char.setStyleSheet("border-image: url(./saka.png);")
         self.randomMoveTimer.start(5000)
+
+        if self.posX < 0:
+            self.posX = 0
+            self.move(self.posX, self.posY)
+        elif self.posX + 150 > self.screenWidth:
+            self.posX = self.screenWidth - 150
+            self.move(self.posX, self.posY)
+        if self.posY < 0:
+            self.posY = 0
+            self.move(self.posX, self.posY)
+        elif self.posY + 150 > self.screenHeight:
+            self.posY = self.screenHeight - 150
+            self.move(self.posX, self.posY)
 
     def contextMenuEvent(self, event: QContextMenuEvent):
         contextMenu = QMenu(self)
